@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "task_manager",
+      "Host": "postgres",
+      "Group": "Servers",
+      "Port": 5432,
+      "MaintenanceDB": "postgres",
+      "Username": "task_manager",
+      "SSLMode": "prefer"
+    }
+  }
+}
