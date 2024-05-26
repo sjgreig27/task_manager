@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.requests import Request
 from tasks.tables import Task
 from tasks.types.task import TaskModelOut, TaskModelIn
+from fastapi import status
 
 router = APIRouter()
 
@@ -19,20 +20,20 @@ async def list_tasks(request: Request) -> List[TaskModelOut]:
 
 @router.post("/tasks/", response_model=TaskModelOut)
 async def create_task(task_model: TaskModelIn) -> TaskModelOut:
-    task = Task(**task_model.dict())
+    task = Task(**task_model.model_dump())
     await task.save()
     return task.to_dict()
 
 
-@router.put("tasks/{task_id}/", response_model=TaskModelOut)
+@router.put("/tasks/{task_id}/", response_model=TaskModelIn)
 async def update_task(
     task_id: int, task_model: TaskModelIn
 ) -> Union[TaskModelOut, JSONResponse]:
     task = await Task.objects().get(Task.id == task_id)
     if not task:
-        return JSONResponse({}, status_code=404)
+        return JSONResponse({}, status_code=status.HTTP_404_NOT_FOUND)
 
-    for key, value in task_model.dict().items():
+    for key, value in task_model.model_dump().items():
         setattr(task, key, value)
 
     await task.save()
@@ -40,11 +41,11 @@ async def update_task(
     return task.to_dict()
 
 
-@router.delete("tasks/{task_id}/")
+@router.delete("/tasks/{task_id}/")
 async def delete_task(task_id: int) -> JSONResponse:
     task = await Task.objects().get(Task.id == task_id)
     if not task:
-        return JSONResponse({}, status_code=404)
+        return JSONResponse({}, status_code=status.HTTP_404_NOT_FOUND)
     await task.remove()
 
     return JSONResponse({})
