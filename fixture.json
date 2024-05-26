@@ -1,0 +1,105 @@
+{
+    "tasks": {
+        "Label": [
+            {
+                "id": 1,
+                "term": "High priority",
+                "description": "Task to be prioritised"
+            },{
+                "id": 2,
+                "term": "High priority",
+                "description": "Task to be prioritised"
+            }
+        ],
+        "Task": [
+            {
+                "id": 1,
+                "name": "Weigh",
+                "description": "Weight out reactants for chemical reaction",
+                "assignee_id": 1,
+                "status": "Pending",
+                "parent_task": null,
+                "date_due": "2024-05-26"
+            },
+            {
+                "id": 2,
+                "name": "Replenish instrument",
+                "description": "Restock consumables for instrument",
+                "assignee_id": 2,
+                "status": "Done",
+                "parent_task": null,
+                "date_due": "2024-05-26"
+            },{
+                "id": 3,
+                "name": "Discard waste",
+                "description": "Empty waste for instrument",
+                "assignee_id": 3,
+                "status": "Doing",
+                "parent_task": null,
+                "date_due": "2024-05-26"
+            },{
+                "id": 4,
+                "name": "Clean instrument",
+                "description": "Instrument requires cleaning",
+                "assignee_id": 3,
+                "status": "Pending",
+                "parent_task": null,
+                "date_due": "2024-05-26"
+            }
+        ],
+        "TaskLabel": [
+            {
+                "id": 1,
+                "task": 3,
+                "label": 1
+            },{
+                "id": 2,
+                "task": 4,
+                "label": 1
+            }
+        ]
+    },
+    "session_auth": {
+        "SessionsBase": []
+    },
+    "user": {
+        "BaseUser": [
+            {
+                "id": 1,
+                "username": "smclean",
+                "password": "pbkdf2_sha256$600000$96d80f64a2caf96913561676cbf5bda7$3375dd4e67ce9c29de10a0b2ae03bb85a3c907474e1f394d00eab23b0689af6b",
+                "first_name": "Steve",
+                "last_name": "McLean",
+                "email": "stevemclean@gmail.com",
+                "active": true,
+                "admin": true,
+                "superuser": true,
+                "last_login": null
+            },
+            {
+                "id": 2,
+                "username": "lmclean",
+                "password": "pbkdf2_sha256$600000$96d80f64a2caf96913561676cbf5bda7$3375dd4e67ce9c29de10a0b2ae03bb85a3c907474e1f394d00eab23b0689af6b",
+                "first_name": "Lisa",
+                "last_name": "McLean",
+                "email": "lisamclean@gmail.com",
+                "active": true,
+                "admin": true,
+                "superuser": true,
+                "last_login": null
+            },{
+                "id": 3,
+                "username": "jmclean",
+                "password": "pbkdf2_sha256$600000$96d80f64a2caf96913561676cbf5bda7$3375dd4e67ce9c29de10a0b2ae03bb85a3c907474e1f394d00eab23b0689af6b",
+                "first_name": "John",
+                "last_name": "McLean",
+                "email": "johnmclean@gmail.com",
+                "active": true,
+                "admin": true,
+                "superuser": true,
+                "last_login": null
+            }
+        ]
+    },
+    "piccolo_admin": {}
+}

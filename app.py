@@ -1,16 +1,14 @@
-import typing as t
-
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
 from piccolo_admin.endpoints import create_admin
-from piccolo_api.crud.serializers import create_pydantic_model
 from piccolo.engine import engine_finder
 from starlette.routing import Route, Mount
 from starlette.staticfiles import StaticFiles
-
 from tasks.endpoints import HomeEndpoint
 from tasks.piccolo_app import APP_CONFIG
-from tasks.tables import Task
+from tasks.routers import router as task_router
+from piccolo_api.session_auth.endpoints import session_login, session_logout
+from starlette.middleware.authentication import AuthenticationMiddleware
+from piccolo_api.session_auth.middleware import SessionsAuthBackend
 
 
 app = FastAPI(
@@ -25,51 +23,10 @@ app = FastAPI(
             ),
         ),
         Mount("/static/", StaticFiles(directory="static")),
+        Mount("/login/", session_login()),
+        Mount("/logout/", session_logout()),
     ],
 )
-
-
-TaskModelIn: t.Any = create_pydantic_model(table=Task, model_name="TaskModelIn")
-TaskModelOut: t.Any = create_pydantic_model(
-    table=Task, include_default_columns=True, model_name="TaskModelOut"
-)
-
-
-@app.get("/tasks/", response_model=t.List[TaskModelOut])
-async def tasks():
-    return await Task.select().order_by(Task.id)
-
-
-@app.post("/tasks/", response_model=TaskModelOut)
-async def create_task(task_model: TaskModelIn):
-    task = Task(**task_model.dict())
-    await task.save()
-    return task.to_dict()
-
-
-@app.put("/tasks/{task_id}/", response_model=TaskModelOut)
-async def update_task(task_id: int, task_model: TaskModelIn):
-    task = await Task.objects().get(Task.id == task_id)
-    if not task:
-        return JSONResponse({}, status_code=404)
-
-    for key, value in task_model.dict().items():
-        setattr(task, key, value)
-
-    await task.save()
-
-    return task.to_dict()
-
-
-@app.delete("/tasks/{task_id}/")
-async def delete_task(task_id: int):
-    task = await Task.objects().get(Task.id == task_id)
-    if not task:
-        return JSONResponse({}, status_code=404)
-
-    await task.remove()
-
-    return JSONResponse({})
 
 
 @app.on_event("startup")
@@ -88,3 +45,10 @@ async def close_database_connection_pool():
         await engine.close_connection_pool()
     except Exception:
         print("Unable to connect to the database")
+
+
+app.include_router(task_router)
+app = AuthenticationMiddleware(
+    app,
+    backend=SessionsAuthBackend(),
+)
