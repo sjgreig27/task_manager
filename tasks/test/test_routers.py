@@ -8,10 +8,10 @@ from piccolo_api.session_auth.tables import SessionsBase
 from app import app
 from fastapi import status
 from piccolo.testing.model_builder import ModelBuilder
-from tasks.tables import Task
+from tasks.tables import Task, TaskHistory
 
 
-class TaskEndpointTestCase(TestCase):
+class TaskRouteTestCase(TestCase):
     def setUp(self):
         super().setUp()
         run_sync(run_forwards("all"))
@@ -39,7 +39,7 @@ class TaskEndpointTestCase(TestCase):
         run_sync(run_backwards("all", auto_agree=True))
 
 
-class TaskListTestCase(TaskEndpointTestCase):
+class TaskListTestCase(TaskRouteTestCase):
 
     def test__when_no_login__endpoint_does_not_list_tasks(self):
         client = TestClient(app)
@@ -55,7 +55,7 @@ class TaskListTestCase(TaskEndpointTestCase):
         self.assertEqual(tasks[0].get("id"), self.primary_user_task.id)
 
 
-class TaskCreateTestCase(TaskEndpointTestCase):
+class TaskCreateTestCase(TaskRouteTestCase):
 
     def test__when_no_login__cannot_create_new_tasks(self):
         client = TestClient(app)
@@ -83,7 +83,7 @@ class TaskCreateTestCase(TaskEndpointTestCase):
         self.assertTrue(Task.exists().where(Task.name == test_task_name).run_sync())
 
 
-class TaskUpdateTestCase(TaskEndpointTestCase):
+class TaskUpdateTestCase(TaskRouteTestCase):
 
     def test__when_no_login__cannot_update_new_tasks(self):
         client = TestClient(app)
@@ -110,7 +110,7 @@ class TaskUpdateTestCase(TaskEndpointTestCase):
         self.assertTrue(Task.exists().where(Task.name == test_update).run_sync())
 
 
-class TaskDeleteTestCase(TaskEndpointTestCase):
+class TaskDeleteTestCase(TaskRouteTestCase):
 
     def test__when_no_login__cannot_delete_existing_tasks(self):
         client = TestClient(app)
@@ -125,4 +125,16 @@ class TaskDeleteTestCase(TaskEndpointTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(
             Task.exists().where(Task.id == self.primary_user_task.id).run_sync()
+        )
+
+    def test__when_instance_deleted__task_recorded_in_history(self):
+        client = self._get_authenticated_client()
+        response = client.delete(
+            f"/task_manager/tasks/{self.primary_user_task.id}/",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            TaskHistory.exists()
+            .where(TaskHistory.task_id == self.primary_user_task.id)
+            .run_sync()
         )

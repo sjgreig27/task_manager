@@ -1,5 +1,5 @@
 from enum import Enum
-from piccolo.columns import OnDelete, Secret, Boolean, Timestamp
+from piccolo.columns import OnDelete, Secret, Boolean, Timestamp, Integer, Serial
 from piccolo.apps.migrations.auto.migration_manager import MigrationManager
 from piccolo.table import Table
 from piccolo.columns import Varchar, ForeignKey, Date, M2M, LazyTableReference
@@ -11,6 +11,7 @@ DESCRIPTION = "Prepopulate schema with example data"
 
 
 class BaseUser(Table, tablename="piccolo_user"):
+    id = Serial(index=False, primary_key=True, db_column_name="id")
     username = Varchar(length=100, unique=True)
     password = Secret(length=255)
     first_name = Varchar(null=True)
@@ -42,6 +43,7 @@ class Task(Table):
         blocked = "Blocked"
         done = "Done"
 
+    id = Serial(index=False, primary_key=True, db_column_name="id")
     name = Varchar()
     description = Varchar(null=True)
     assignee_id = ForeignKey(
@@ -52,6 +54,7 @@ class Task(Table):
 
 
 class Label(Table):
+    id = Serial(index=False, primary_key=True, db_column_name="id")
     term = Varchar()
     description = Varchar(null=True)
 
@@ -67,72 +70,86 @@ async def forwards():
     )
 
     async def run():
-        await BaseUser.insert(
-            BaseUser(
-                username="smclean",
-                password="pbkdf2_sha256$600000$96d80f64a2caf96913561676cbf5bda7$3375dd4e67ce9c29de10a0b2ae03bb85a3c907474e1f394d00eab23b0689af6b",
-                first_name="Steve",
-                last_name="Mclean",
-                email="stevenmclean@gmail.com",
-                active=True,
-                admin=False,
-                superuser=False,
-            ),
-            BaseUser(
-                username="lmclean",
-                password="pbkdf2_sha256$600000$96d80f64a2caf96913561676cbf5bda7$3375dd4e67ce9c29de10a0b2ae03bb85a3c907474e1f394d00eab23b0689af6b",
-                first_name="Lisa",
-                last_name="Mclean",
-                email="lisamclean@gmail.com",
-                active=True,
-                admin=False,
-                superuser=False,
-            ),
-            BaseUser(
-                username="jmclean",
-                password="pbkdf2_sha256$600000$96d80f64a2caf96913561676cbf5bda7$3375dd4e67ce9c29de10a0b2ae03bb85a3c907474e1f394d00eab23b0689af6b",
-                first_name="John",
-                last_name="Mclean",
-                email="johnmclean@gmail.com",
-                active=True,
-                admin=False,
-                superuser=False,
-            ),
+        smclean = await BaseUser.objects().create(
+            username="smclean",
+            password="pbkdf2_sha256$600000$96d80f64a2caf96913561676cbf5bda7$3375dd4e67ce9c29de10a0b2ae03bb85a3c907474e1f394d00eab23b0689af6b",
+            first_name="Steve",
+            last_name="Mclean",
+            email="stevenmclean@gmail.com",
+            active=True,
+            admin=False,
+            superuser=False,
+        )
+
+        lmclean = await BaseUser.objects().create(
+            username="lmclean",
+            password="pbkdf2_sha256$600000$96d80f64a2caf96913561676cbf5bda7$3375dd4e67ce9c29de10a0b2ae03bb85a3c907474e1f394d00eab23b0689af6b",
+            first_name="Lisa",
+            last_name="Mclean",
+            email="lisamclean@gmail.com",
+            active=True,
+            admin=False,
+            superuser=False,
+        )
+
+        jmclean = await BaseUser.objects().create(
+            username="jmclean",
+            password="pbkdf2_sha256$600000$96d80f64a2caf96913561676cbf5bda7$3375dd4e67ce9c29de10a0b2ae03bb85a3c907474e1f394d00eab23b0689af6b",
+            first_name="John",
+            last_name="Mclean",
+            email="johnmclean@gmail.com",
+            active=True,
+            admin=False,
+            superuser=False,
+        )
+
+        parent_task = await Task.objects().create(
+            name="Prepare instrument",
+            description="Prepare instrument for not batch of reactions",
+            assignee_id=jmclean.id,
+            status="Doing",
         )
 
         await Task.insert(
             Task(
                 name="Weigh",
                 description="Weigh out reactants for chemical reaction",
-                assignee_id=1,
+                assignee_id=smclean.id,
                 status="Pending",
             ),
             Task(
                 name="Replenish instrument",
                 description="Restock consumables for instrument",
-                assignee_id=2,
+                assignee_id=lmclean.id,
                 status="Done",
             ),
             Task(
                 name="Discard waste",
                 description="Empty waste for instrument",
-                assignee_id=3,
+                assignee_id=jmclean.id,
+                parent_task=parent_task.id,
                 status="Doing",
             ),
             Task(
                 name="Clean instrument",
                 description="Instrument requires cleaning",
-                assignee_id=3,
+                assignee_id=jmclean.id,
+                parent_task=parent_task.id,
                 status="Pending",
             ),
         )
 
-        await Label.insert(
-            Label(term="High priority", description="Task to be prioritised"),
-            Label(term="Parked", description="Task is being paused"),
+        high_priority = await Label.objects().create(
+            term="High priority", description="Task to be prioritised"
+        )
+        parked = await Label.objects().create(
+            term="Parked", description="Task is being paused"
         )
 
-        await TaskLabel.insert(TaskLabel(task=2, label=1), TaskLabel(task=4, label=1))
+        await TaskLabel.insert(
+            TaskLabel(task=parent_task.id, label=high_priority.id),
+            TaskLabel(task=parent_task.id, label=parked.id),
+        )
 
     manager.add_raw(run)
 
