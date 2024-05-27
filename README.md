@@ -64,19 +64,20 @@ piccolo tester run
 
 ### Stack
 * [FastAPI](https://fastapi.tiangolo.com/) - Lightweight framework
-* [Piccolo ORM](https://piccolo-orm.readthedocs.io/en/latest/) - Migrations built into framework, similar to the Django ORM I am more familiar with
+* [Piccolo ORM](https://piccolo-orm.readthedocs.io/en/latest/) - Migrations built into framework, similar to the Django ORM
 * [PostgreSQL](https://www.postgresql.org/) - Easy of setup and containerisation
 
 ### Limitations
 * Test coverage less than it should be - should have requirements not covered by existing tests
 * No logging added in - would ideally add logging with [loguru](https://github.com/Delgan/loguru)
 * Ideally, would have had a service layer to decouple router endpoints from the ORM logic, decoupling the API from the database schema
-* No documentation, ideally would have used [Sphinx](https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html) to document the code
+* Would have like to have used [Sphinx](https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html) to document the code
 * A nice to have would have been to include type-checking with [MyPy](https://mypy.readthedocs.io/en/stable/)
+* Would have been nice to utilise the [dependency injection](https://fastapi.tiangolo.com/tutorial/dependencies/) in FastAPI
 
 ### Design and Documentation Process
 * Defined and prioritised (MoSCoW) the [requirements](https://docs.google.com/document/d/1wNmAIqKdzTpBa8mh2UwxZbfwNL-HK95384hMEsx3cHk/edit?usp=sharing) based upon the specification
-* Mapped out an initial entity-relationship diagram
+* Mapped out an initial entity-relationship diagram, which was later refined
 
 ![Entity-relationship diagram](design/ERD.png)
 
