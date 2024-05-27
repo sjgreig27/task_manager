@@ -12,7 +12,7 @@ cp .env.template .env
 The environment file provides defines variables for setting passwords and login credentials on the local database and pgAdmin instance.
 
 ```bash
-docker-compose up --build -d
+docker-compose up --build
 ```
 The docker-compose file spins up a PostgreSQL database and [pgAdmin](http://localhost:8080) instance for inspection of the database as well as the [FastAPI / Piccolo App](http://localhost:8000/login).
 
@@ -30,9 +30,8 @@ With the stack up and running in docker-compose, run the following to run the Pi
 As a prerequisite, follow the installation instructions for [Poetry](https://python-poetry.org/docs/#installation).
 
 ```bash
-poetry install
-poetry shell
-piccolo tester run
+poetry install # Install dependencies
+poetry shell # Activate virtual environment
 ```
 
 ### Running the Test Suite
