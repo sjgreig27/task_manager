@@ -3,8 +3,16 @@ from fastapi import APIRouter
 from typing import List, Union
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
-from tasks.tables import Task, TaskHistory, TaskLabel
-from tasks.types.task import TaskModelOut, TaskModelIn, TaskLabelOut, TaskRestoreIn
+from tasks.tables import Task, TaskHistory, TaskLabel, Label
+from tasks.types.task import (
+    TaskModelOut,
+    TaskModelIn,
+    TaskLabelOut,
+    TaskRestoreIn,
+    LabelModelOut,
+    LabelModelIn,
+    TaskLabelIn,
+)
 from fastapi import status
 
 router = APIRouter()
@@ -71,15 +79,6 @@ async def list_subtasks(request: Request, task_id: int) -> List[TaskModelOut]:
     )
 
 
-@router.get("/tasks/{task_id}/labels/", response_model=List[TaskLabelOut])
-async def list_labels(request: Request, task_id: int) -> List[TaskLabelOut]:
-    return (
-        await TaskLabel.objects(TaskLabel.label)
-        .where(TaskLabel.task.id == task_id)
-        .order_by(TaskLabel.id)
-    )
-
-
 @router.get("/tasks/deleted/", response_model=List[TaskModelOut])
 async def list_deleted() -> List[TaskModelOut]:
     historical_tasks = await TaskHistory.objects().order_by(TaskHistory.id)
@@ -104,3 +103,79 @@ async def restore_deleted_tasks(restore_spec: TaskRestoreIn) -> List[TaskModelOu
     )
 
     return await Task.insert(*restored_tasks)
+
+
+@router.get("/tasks/{task_id}/labels/", response_model=List[TaskLabelOut])
+async def list_task_labels(task_id: int) -> List[TaskLabelOut]:
+    return (
+        await TaskLabel.objects(TaskLabel.label)
+        .where(TaskLabel.task == task_id)
+        .order_by(TaskLabel.id)
+    )
+
+
+@router.post("/tasks/{task_id}/labels/", response_model=List[TaskLabelOut])
+async def set_task_labels(
+    task_id: int, labels: List[TaskLabelIn]
+) -> List[TaskLabelOut]:
+    new_task_labels = {x.label for x in labels}
+    existing_task_labels = (
+        await TaskLabel.select(TaskLabel.label)
+        .where(TaskLabel.task == task_id)
+        .distinct()
+    )
+    existing_task_label_ids = {x["label"] for x in existing_task_labels}
+    await TaskLabel.delete().where(
+        (TaskLabel.label.not_in(new_task_labels) & (TaskLabel.task == task_id))
+    )
+    await TaskLabel.insert(
+        *[
+            TaskLabel(task=task_id, label=x.label)
+            for x in labels
+            if x.label not in existing_task_label_ids
+        ]
+    )
+    return (
+        await TaskLabel.objects(TaskLabel.label)
+        .where(TaskLabel.task == task_id)
+        .order_by(TaskLabel.id)
+    )
+
+
+@router.get("/labels", response_model=List[LabelModelOut])
+async def list_labels(request: Request) -> List[LabelModelOut]:
+    return await Label.select().order_by(Label.id)
+
+
+@router.post("/labels/", response_model=LabelModelOut)
+async def create_label(task_model: LabelModelIn) -> LabelModelOut:
+    label = Label(**task_model.model_dump())
+    await label.save()
+    return label.to_dict()
+
+
+@router.put("/labels/{label_id}/", response_model=LabelModelOut)
+async def update_label(
+    task_id: int, label_model: LabelModelIn
+) -> Union[LabelModelOut, JSONResponse]:
+    label = await Label.objects().get(Label.id == task_id)
+    if not label:
+        return JSONResponse({}, status_code=status.HTTP_404_NOT_FOUND)
+
+    for key, value in label_model.model_dump().items():
+        setattr(label, key, value)
+
+    await label.save()
+
+    return label.to_dict()
+
+
+@router.delete("/labels/{label_id}/")
+async def delete_label(label_id: int) -> JSONResponse:
+    label = await Label.objects().get(Label.id == label_id)
+    if not label:
+        return JSONResponse({}, status_code=status.HTTP_404_NOT_FOUND)
+
+    await label.remove()
+
+    return JSONResponse({})

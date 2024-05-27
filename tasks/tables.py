@@ -44,7 +44,7 @@ class TaskHistory(Table):
 
 
 class Label(Table):
-    term = Varchar()
+    term = Varchar(unique=True)
     description = Varchar(null=True)
     tasks = M2M(LazyTableReference("TaskLabel", module_path=__name__))
 
