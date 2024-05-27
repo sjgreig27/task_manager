@@ -9,6 +9,10 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./initdb:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: "pg_isready --username=postgres && psql --username=postgres --list"
+      timeout: 20s
+      retries: 20
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -22,6 +26,24 @@ services:
       - "8080:80"
     depends_on:
       - postgres
+
+  task_manager:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    expose:
+      - "8000"
+    environment:
+      POSTGRESQL_DB_HOST: postgres
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:
