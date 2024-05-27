@@ -16,7 +16,7 @@ docker-compose up --build
 ```
 The docker-compose file spins up a PostgreSQL database and [pgAdmin](http://localhost:8080) instance for inspection of the database as well as the [FastAPI / Piccolo App](http://localhost:8000/login).
 
-The credentials for login to pgAdmin are located in the .env file. The [FastAPI / Piccolo App](http://localhost:8000/login) uses a data migration to pre-seed the database with some example data. It should be noted that the password for the pre-defined users (smclean, lmclean and jmclean) are all the identical - namely the term "password". It should be noted that the user jmclean is the assignee of those tasks which include subtasks.
+The credentials for login to pgAdmin are located in the .env file. The [FastAPI / Piccolo App](http://localhost:8000/login) uses a data migration to pre-seed the database with some example data. It should be noted that the password for the pre-defined users (i.e. smclean, lmclean and jmclean) are all identical for simplicity - namely the term "password". It should be noted that the user jmclean is the assignee of the tasks which include subtasks.
 
 The stack can be brought back down by running:
 ```bash
@@ -68,7 +68,18 @@ piccolo tester run
 * [PostgreSQL](https://www.postgresql.org/) - Easy of setup and containerisation
 
 ### Limitations
-* Test coverage less than it should be
-* No logging added in
-* Ideally, would have had a service layer to decouple router endpoints from the ORM logic
+* Test coverage less than it should be - should have requirements not covered by existing tests
+* No logging added in - would ideally add logging with [loguru](https://github.com/Delgan/loguru)
+* Ideally, would have had a service layer to decouple router endpoints from the ORM logic, decoupling the API from the database schema
+* No documentation, ideally would have used [Sphinx](https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html) to document the code
+* A nice to have would have been to include type-checking with [MyPy](https://mypy.readthedocs.io/en/stable/)
+
+### Design and Documentation Process
+* Defined and prioritised (MoSCoW) the [requirements](https://docs.google.com/document/d/1wNmAIqKdzTpBa8mh2UwxZbfwNL-HK95384hMEsx3cHk/edit?usp=sharing) based upon the specification
+* Mapped out an initial entity-relationship diagram
+
+![Entity-relationship diagram](design/ERD.png)
+
+* With greater familiarity with Django, researched different ORM solutions and landed on [Piccolo](https://piccolo-orm.readthedocs.io/en/latest/index.html) due to integrated migrations framework and similarity in approach to Django ORM. In addition, Piccolo has a supplemental project providing authentication - [Piccolo API](https://piccolo-api.readthedocs.io/en/latest/index.html).
+
 
