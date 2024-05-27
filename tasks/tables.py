@@ -37,7 +37,7 @@ class Task(Table):
 
 
 class TaskHistory(Table):
-    task_id = Integer()
+    task_id = Integer(unique=True)
     serialized_data = JSON()
     deleted_on = Timestamp()
     deleted_by = ForeignKey(BaseUser, on_delete=OnDelete.restrict)
